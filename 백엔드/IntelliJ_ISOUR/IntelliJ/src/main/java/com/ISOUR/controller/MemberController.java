@@ -1,10 +1,16 @@
 package com.ISOUR.controller;
 
+import com.ISOUR.Service.EmailService;
 import com.ISOUR.dto.MemberDTO;
 import com.ISOUR.service.MemberService;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +20,8 @@ import java.util.*;
 @RestController
 @Slf4j
 public class MemberController {
+    @Autowired EmailService emailService;
+
     // Service(서비스) 로직 연결
     private MemberService memberService;
     public MemberController(MemberService memberService) {
@@ -209,5 +217,25 @@ public class MemberController {
         List<MemberDTO> list = memberService.getMemberList();
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
+
+    /*이메일 인증 조회*/
+    @PostMapping("/emailConfirm")
+    @ApiOperation(value = "회원 가입시 이메인 인증", notes = "기존사용하고 있는 이메일을 통해 인증")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "성공"),
+            @ApiResponse(code = 401, message = "인증 실패"),
+            @ApiResponse(code = 404, message = "사용자 없음"),
+            @ApiResponse(code = 500, message = "서버 오류")
+    })
+    public ResponseEntity<? extends BaseResponseBody> emailConfirm(
+            @RequestBody @ApiParam(value="이메일정보 정보", required = true) String email) throws Exception {
+
+        String confirm = emailService.sendSimpleMessage(email);
+
+        return ResponseEntity.status(200).body(BaseResponseBody.of(200, confirm));
+    }
+
+
+
 
 }
